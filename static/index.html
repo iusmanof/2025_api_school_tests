@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Test</title>
+</head>
+<body>
+    <h1>Start Your Test</h1>
+
+    <!-- Form to enter name and select class -->
+    <form id="test-form">
+        <label for="student-name">Enter your name:</label>
+        <input type="text" id="student-name" name="name" required>
+
+        <div>
+            <label>Select Class:</label><br>
+            <input type="radio" id="class6" name="class" value="6">
+            <label for="class6">Class 6</label><br>
+            <input type="radio" id="class7" name="class" value="7">
+            <label for="class7">Class 7</label><br>
+            <input type="radio" id="class8" name="class" value="8">
+            <label for="class8">Class 8</label><br>
+            <input type="radio" id="class9" name="class" value="9">
+            <label for="class9">Class 9</label><br>
+            <input type="radio" id="class10" name="class" value="10">
+            <label for="class10">Class 10</label><br>
+            <input type="radio" id="class11" name="class" value="11">
+            <label for="class11">Class 11</label><br>
+        </div>
+
+        <button type="submit">Start Test</button>
+    </form>
+
+    <div id="question-container" style="display:none;">
+        <h2>Test Questions</h2>
+        <form id="question-form">
+            <div id="questions"></div>
+            <button type="submit">Submit Answers</button>
+        </form>
+    </div>
+
+    <div id="result" style="display:none;">
+        <h2>Test Results</h2>
+        <p id="result-text"></p>
+    </div>
+
+    <script>
+        document.getElementById('test-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const studentName = document.getElementById("student-name").value;
+            const classSelected = document.querySelector('input[name="class"]:checked').value;
+
+            // Fetch the questions based on the selected class
+            const response = await fetch(`/get-test-questions?class=${classSelected}`);
+            const data = await response.json();
+
+            if (data.success) {
+                // Hide the form and show the questions
+                document.getElementById('test-form').style.display = 'none';
+                document.getElementById('question-container').style.display = 'block';
+
+                // Populate questions
+                let questionsHtml = '';
+                data.questions.forEach((question, index) => {
+                    questionsHtml += `
+                        <div>
+                            <p>${index + 1}. ${question.question_text}</p>
+                            <label><input type="radio" name="q${index}" value="${question.options[0]}"> ${question.options[0]}</label><br>
+                            <label><input type="radio" name="q${index}" value="${question.options[1]}"> ${question.options[1]}</label><br>
+                            <label><input type="radio" name="q${index}" value="${question.options[2]}"> ${question.options[2]}</label><br>
+                            <label><input type="radio" name="q${index}" value="${question.options[3]}"> ${question.options[3]}</label><br>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('questions').innerHTML = questionsHtml;
+            } else {
+                alert('Error fetching questions!');
+            }
+        });
+
+        document.getElementById('question-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const answers = [];
+            const questions = document.querySelectorAll('#questions div');
+            questions.forEach((question, index) => {
+                const selectedAnswer = document.querySelector(`input[name="q${index}"]:checked`);
+                if (selectedAnswer) {
+                    answers.push(selectedAnswer.value);
+                }
+            });
+
+            const classSelected = document.querySelector('input[name="class"]:checked').value;
+
+            // Send the answers to the server for grading
+            const response = await fetch(`/submit-answers?class=${classSelected}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ answers })
+            });
+
+            const data = await response.json();
+
+            // Display the results
+            document.getElementById('question-container').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('result-text').textContent = `You got ${data.correct} out of ${data.total} correct!`;
+        });
+    </script>
+</body>
+</html>

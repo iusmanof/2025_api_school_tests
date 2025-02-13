@@ -1,0 +1,33 @@
+services:
+  golang_api:
+    image: iusmanof/go_api_db:v1.4
+    container_name: golang_api
+    build: .
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    ports:
+      - "${GO_APP_IN_PORT}:${GO_APP_OUT_PORT}"
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+
+  postgres_db:
+    container_name: postgres_db
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_IN_PORT}:${POSTGRES_OUT_PORT}"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+volumes:
+  pgdata: {}
