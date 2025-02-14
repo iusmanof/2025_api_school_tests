@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard</title>
+    <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-    <h1>Upload CSV for Questions</h1>
+    <h1>Кабинет учителя</h1>
     <form id="csv-form" enctype="multipart/form-data">
         <label for="csv-file">Choose CSV file:</label>
         <input type="file" id="csv-file" name="file" accept=".csv" required>
-        <button type="submit">Upload CSV</button>
+        <button type="submit">Загрузить тесты в формате CSV</button>
     </form>
 
     <form action="/delete-all-questions" method="POST">
-       <button type="submit">Delete All Questions</button>
+       <button type="submit" class="warning">Очистить БД</button>
     </form>
 
     <script>
